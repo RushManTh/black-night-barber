@@ -60,9 +60,10 @@ export default function LiffHomePage() {
 
       {/* Quick grid */}
       <SectionTitle>เมนูลัด</SectionTitle>
-      <div className="liff-quick-grid cols-3">
+      <div className="liff-quick-grid cols-4">
         <QuickItem href="/liff/my-queue" icon={Ticket} label="คิวของฉัน" />
         <QuickItem href="/liff/waitlist" icon={Hourglass} label="รอคิวว่าง" />
+        <QuickItem href="/liff/promos" icon={Sparkles} label="โปรโมชั่น" />
         <QuickItem href="/liff/profile" icon={UserCircle} label="โปรไฟล์" />
       </div>
 

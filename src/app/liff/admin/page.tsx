@@ -8,6 +8,7 @@ import {
   MessagesSquare,
   Scissors,
   Settings,
+  Tag,
   Users,
   UsersRound,
   Wrench,
@@ -54,6 +55,7 @@ export default function AdminLandingPage() {
           <>
             <NavLink href="/liff/admin/barbers" icon={Users} label="จัดการช่าง" />
             <NavLink href="/liff/admin/services" icon={Scissors} label="จัดการบริการ" />
+            <NavLink href="/liff/admin/promotions" icon={Tag} label="โปรโมชั่น" />
             <NavLink href="/liff/admin/settings" icon={Settings} label="ตั้งค่าร้าน" />
           </>
         )}

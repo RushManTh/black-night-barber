@@ -19,6 +19,9 @@ import { LiffFrame } from '@/components/liff/liff-frame'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Tag } from 'lucide-react'
 
 type Service = {
   id: string
@@ -73,6 +76,10 @@ export default function BookingWizard() {
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [promoCode, setPromoCode] = useState('')
+  const [promoChecking, setPromoChecking] = useState(false)
+  const [promoApplied, setPromoApplied] = useState<{ discount: number; total: number; name: string } | null>(null)
+  const [promoError, setPromoError] = useState<string | null>(null)
 
   useEffect(() => {
     const sb = createClient()
@@ -127,6 +134,34 @@ export default function BookingWizard() {
     return arr
   }, [])
 
+  async function checkPromo() {
+    if (!promoCode.trim() || pickedServiceIds.size === 0) return
+    setPromoChecking(true)
+    setPromoError(null)
+    setPromoApplied(null)
+    const res = await fetch('/api/promos/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken,
+        code: promoCode.trim(),
+        service_ids: [...pickedServiceIds],
+      }),
+    })
+    setPromoChecking(false)
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({ error: 'failed' }))
+      setPromoError(j.error ?? 'ใช้คูปองไม่ได้')
+      return
+    }
+    const j = await res.json()
+    setPromoApplied({
+      discount: j.discount,
+      total: j.total,
+      name: j.promotion.name,
+    })
+  }
+
   async function handleConfirm() {
     if (!idToken || !pickedBarberId || !pickedSlot || pickedServiceIds.size === 0) return
     setSubmitting(true)
@@ -140,6 +175,7 @@ export default function BookingWizard() {
           barber_id: pickedBarberId,
           slot_time: pickedSlot,
           service_ids: [...pickedServiceIds],
+          promo_code: promoApplied ? promoCode.trim() : null,
         }),
       })
       if (!createRes.ok) {
@@ -346,10 +382,57 @@ export default function BookingWizard() {
                   ))}
                 </div>
               </SummaryRow>
+
               <div className="border-t pt-3">
+                <Label htmlFor="promo" className="flex items-center gap-1 text-xs uppercase tracking-wider text-muted-foreground">
+                  <Tag className="h-3 w-3" />
+                  รหัสคูปอง
+                </Label>
+                <div className="mt-1 flex gap-2">
+                  <Input
+                    id="promo"
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value.toUpperCase())
+                      setPromoApplied(null)
+                      setPromoError(null)
+                    }}
+                    placeholder="ใส่รหัสถ้ามี"
+                    className="font-mono uppercase"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!promoCode.trim() || promoChecking}
+                    onClick={checkPromo}
+                  >
+                    {promoChecking ? '…' : 'ใช้'}
+                  </Button>
+                </div>
+                {promoApplied && (
+                  <p className="mt-1 text-xs text-emerald-700">
+                    ✓ ใช้โปร &ldquo;{promoApplied.name}&rdquo; — ลด ฿{promoApplied.discount.toLocaleString()}
+                  </p>
+                )}
+                {promoError && <p className="mt-1 text-xs text-red-700">{promoError}</p>}
+              </div>
+
+              <div className="border-t pt-3">
+                {promoApplied && (
+                  <>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>ราคาเต็ม</span>
+                      <span className="line-through">฿{totalPrice.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-emerald-700">
+                      <span>ส่วนลด</span>
+                      <span>-฿{promoApplied.discount.toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex items-center justify-between text-base font-semibold">
                   <span>รวม</span>
-                  <span>฿{totalPrice.toLocaleString()}</span>
+                  <span>฿{(promoApplied?.total ?? totalPrice).toLocaleString()}</span>
                 </div>
                 <Badge variant="secondary" className="mt-1 gap-1">
                   <Clock className="h-3 w-3" /> {totalDuration} นาที
