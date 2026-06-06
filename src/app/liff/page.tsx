@@ -61,11 +61,11 @@ export default function LiffHomePage() {
 
       <h2 className="mt-6 mb-2 text-sm font-semibold text-zinc-600">เมนู</h2>
       <nav className="grid gap-2">
+        <NavLink href="/liff/booking" emoji="📅" label="จองคิว" />
+        <NavLink href="/liff/my-queue" emoji="🎟️" label="คิวของฉัน" />
         <NavLink href="/liff/profile" emoji="👤" label="โปรไฟล์ของฉัน" />
         <NavLink href="/liff/services" emoji="✂️" label="บริการ + ราคา" />
         <NavLink href="/liff/barbers" emoji="💈" label="ช่างของเรา" />
-        <NavLink href="#" emoji="📅" label="จองคิว (เร็วๆ นี้)" disabled />
-        <NavLink href="#" emoji="🎟️" label="คิวของฉัน (เร็วๆ นี้)" disabled />
       </nav>
 
       <p className="mt-6 text-center text-xs text-zinc-400">
