@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useLiff } from '@/lib/liff/provider'
 import { LiffFrame } from '@/components/liff/liff-frame'
@@ -15,14 +15,23 @@ type Barber = {
 }
 
 export default function NewWaitlistPage() {
+  return (
+    <Suspense fallback={<Centered>กำลังโหลด…</Centered>}>
+      <NewWaitlistInner />
+    </Suspense>
+  )
+}
+
+function NewWaitlistInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { loading, error, idToken, appProfile } = useLiff()
   const [services, setServices] = useState<Service[]>([])
   const [barbers, setBarbers] = useState<Barber[]>([])
 
-  const [serviceId, setServiceId] = useState('')
-  const [barberId, setBarberId] = useState('')
-  const [date, setDate] = useState('')
+  const [serviceId, setServiceId] = useState(searchParams.get('service_id') ?? '')
+  const [barberId, setBarberId] = useState(searchParams.get('barber_id') ?? '')
+  const [date, setDate] = useState(searchParams.get('date') ?? '')
   const [timeFrom, setTimeFrom] = useState('10:00')
   const [timeTo, setTimeTo] = useState('21:00')
   const [submitting, setSubmitting] = useState(false)

@@ -65,7 +65,7 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --input: oklch(0.82 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -264,10 +264,16 @@
   .liff-carousel > * { flex: 0 0 auto; }
 
   .liff-promo-card {
-    width: 11rem;
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
+    width: 13rem;
+    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(35 50% 96%) 100%);
+    border: 1px solid hsl(35 50% 85%);
     border-radius: var(--radius);
-    padding: 0.875rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px hsl(35 30% 60% / 0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .liff-promo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px hsl(35 30% 60% / 0.15);
   }
 }

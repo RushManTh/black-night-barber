@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import {
   CalendarDays,
   Clock,
@@ -15,11 +17,20 @@ import {
 } from "lucide-react";
 import { useLiff, useIsAdmin } from "@/lib/liff/provider";
 import { LiffFrame, SectionTitle } from "@/components/liff/liff-frame";
+import { PromoCarousel } from "@/components/liff/promo-carousel";
 import { Button } from "@/components/ui/button";
 
 export default function LiffHomePage() {
+  const router = useRouter();
   const { loading, error, appProfile } = useLiff();
   const isAdmin = useIsAdmin();
+
+  // First-time users (no phone yet) → onboarding
+  useEffect(() => {
+    if (appProfile && !appProfile.phone) {
+      router.replace("/liff/welcome");
+    }
+  }, [appProfile, router]);
 
   if (loading) return <CenterMessage>กำลังเชื่อมต่อ LINE…</CenterMessage>;
   if (error) {
@@ -57,6 +68,8 @@ export default function LiffHomePage() {
           จองคิวเลย
         </Button>
       </Link>
+
+      <PromoCarousel />
 
       {/* Quick grid */}
       <SectionTitle>เมนูลัด</SectionTitle>

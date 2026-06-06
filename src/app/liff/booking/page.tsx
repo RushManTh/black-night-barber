@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Baby,
   Check,
@@ -208,29 +209,29 @@ export default function BookingWizard() {
 
   return (
     <LiffFrame title="จองคิว" back="/liff">
-      {/* Step indicator */}
+      {/* Step indicator — circles + connectors as siblings so they distribute evenly */}
       <div className="mb-5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           {STEP_TITLES.map((_, i) => (
-            <div key={i} className="flex flex-1 items-center">
+            <React.Fragment key={i}>
               <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
                   i + 1 < step
                     ? 'bg-primary text-primary-foreground'
                     : i + 1 === step
                     ? 'border-2 border-primary bg-background text-primary'
-                    : 'bg-secondary text-muted-foreground'
+                    : 'border border-border bg-background text-muted-foreground'
                 }`}
               >
-                {i + 1 < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                {i + 1 < step ? <Check className="h-4 w-4" /> : i + 1}
               </div>
               {i < STEP_TITLES.length - 1 && (
-                <div className={`mx-1 h-px flex-1 ${i + 1 < step ? 'bg-primary' : 'bg-border'}`} />
+                <div className={`mx-1.5 h-0.5 flex-1 rounded ${i + 1 < step ? 'bg-primary' : 'bg-border'}`} />
               )}
-            </div>
+            </React.Fragment>
           ))}
         </div>
-        <h2 className="mt-3 text-base font-semibold">{STEP_TITLES[step - 1]}</h2>
+        <h2 className="mt-4 text-center text-base font-semibold">{STEP_TITLES[step - 1]}</h2>
       </div>
 
       <div className="space-y-2">
@@ -331,8 +332,18 @@ export default function BookingWizard() {
             {slotsLoading && <p className="text-sm text-muted-foreground">กำลังโหลดเวลาว่าง…</p>}
             {!slotsLoading && slots && slots.length === 0 && (
               <Card className="border-dashed">
-                <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                  ไม่มีคิวว่างในวันนี้ ลองเลือกวันอื่น
+                <CardContent className="py-8 text-center text-sm">
+                  <p className="text-muted-foreground">ไม่มีคิวว่างในวันนี้</p>
+                  {pickedDate && pickedBarberId && pickedServiceIds.size > 0 && (
+                    <Link
+                      href={`/liff/waitlist/new?date=${pickedDate}&barber_id=${pickedBarberId}&service_id=${[...pickedServiceIds][0]}`}
+                      className="mt-3 inline-block"
+                    >
+                      <Button size="lg" variant="outline">
+                        ขอรอคิวว่าง
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             )}

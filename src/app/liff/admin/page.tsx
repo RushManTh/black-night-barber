@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import {
   BarChart3,
+  Bell,
   CalendarClock,
   CalendarDays,
+  FileText,
   Lock,
   MessagesSquare,
   Scissors,
@@ -58,6 +60,8 @@ export default function AdminLandingPage() {
             <NavLink href="/liff/admin/barbers" icon={Users} label="จัดการช่าง" />
             <NavLink href="/liff/admin/services" icon={Scissors} label="จัดการบริการ" />
             <NavLink href="/liff/admin/promotions" icon={Tag} label="โปรโมชั่น" />
+            <NavLink href="/liff/admin/notifications" icon={Bell} label="ประวัติแจ้งเตือน" />
+            <NavLink href="/liff/admin/templates" icon={FileText} label="ข้อความที่ส่ง" />
             <NavLink href="/liff/admin/settings" icon={Settings} label="ตั้งค่าร้าน" />
           </>
         )}
