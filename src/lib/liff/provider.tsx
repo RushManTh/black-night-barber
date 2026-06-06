@@ -85,6 +85,12 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
 
         if (!res.ok) {
           const errText = await res.text()
+          // LIFF id_tokens expire (~1h). Force a fresh login to get a new token,
+          // then this useEffect will re-fire after LINE redirects us back.
+          if (errText.includes('IdToken expired') || errText.includes('expired')) {
+            liff.login()
+            return
+          }
           throw new Error(`sync failed (${res.status}): ${errText}`)
         }
 

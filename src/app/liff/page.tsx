@@ -81,13 +81,21 @@ export default function LiffHomePage() {
 
       {isAdmin && (
         <>
-          <SectionTitle icon={Wrench}>Admin</SectionTitle>
-          <NavLink
-            href="/liff/admin"
-            icon={Wrench}
-            label="Admin Dashboard"
-            sublabel={appProfile.role}
-          />
+          <SectionTitle icon={Wrench}>พนักงาน</SectionTitle>
+          <div className="grid gap-2">
+            <NavLink
+              href="/liff/admin"
+              icon={Wrench}
+              label="Admin Dashboard"
+              sublabel={appProfile.role}
+            />
+            <NavLink
+              href="/liff/barber"
+              icon={Scissors}
+              label="หน้าช่าง"
+              sublabel="ตารางทำงาน · วันลา · รีวิว"
+            />
+          </div>
         </>
       )}
 

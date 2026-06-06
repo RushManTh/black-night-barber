@@ -28,6 +28,22 @@ export async function PATCH(
   }
 
   const sb = createAdminClient()
+
+  // Barbers can only modify reviews on their own services
+  if (auth.role === 'barber') {
+    const { data: existing } = await sb
+      .from('reviews')
+      .select('barber_id')
+      .eq('id', id)
+      .maybeSingle()
+    if (!existing) return Response.json({ error: 'review not found' }, { status: 404 })
+    if (existing.barber_id !== auth.userId) {
+      return Response.json({ error: 'forbidden' }, { status: 403 })
+    }
+    // Barbers can only reply, not unpublish/publish
+    delete patch.is_published
+  }
+
   const { data: review } = await sb
     .from('reviews')
     .update(patch)

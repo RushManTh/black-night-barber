@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { Phone, Search } from 'lucide-react'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
@@ -82,7 +83,8 @@ export default function AdminCustomersPage() {
       ) : (
         <div className="space-y-2">
           {customers.map((c) => (
-            <Card key={c.id} className="border-border">
+            <Link key={c.id} href={`/liff/admin/customers/${c.id}`} className="block">
+            <Card className="border-border transition active:scale-[0.99]">
               <CardContent className="space-y-1 py-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
@@ -114,6 +116,7 @@ export default function AdminCustomersPage() {
                 )}
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
       )}
