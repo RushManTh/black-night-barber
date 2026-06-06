@@ -142,7 +142,10 @@ export default function BookingWizard() {
           service_ids: [...pickedServiceIds],
         }),
       })
-      if (!createRes.ok) throw new Error(await createRes.text())
+      if (!createRes.ok) {
+        const raw = await createRes.text()
+        throw new Error(humanizeBookingError(raw))
+      }
       const { booking } = (await createRes.json()) as { booking: { id: string } }
 
       const confirmRes = await fetch(`/api/bookings/${booking.id}/confirm`, {
@@ -150,7 +153,10 @@ export default function BookingWizard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),
       })
-      if (!confirmRes.ok) throw new Error(await confirmRes.text())
+      if (!confirmRes.ok) {
+        const raw = await confirmRes.text()
+        throw new Error(humanizeBookingError(raw))
+      }
 
       router.push(`/liff/booking/${booking.id}/success`)
     } catch (e) {
@@ -384,6 +390,23 @@ export default function BookingWizard() {
       </div>
     </LiffFrame>
   )
+}
+
+/** Map raw RPC error strings to user-friendly Thai messages */
+function humanizeBookingError(raw: string): string {
+  if (raw.includes('ALREADY_BOOKED')) {
+    return 'คุณมีคิวที่เวลานี้อยู่แล้ว ดูได้ที่ "คิวของฉัน"'
+  }
+  if (raw.includes('SLOT_UNAVAILABLE')) {
+    return 'ขออภัย คิวนี้ถูกจองไปแล้วโดยลูกค้าท่านอื่น กรุณาเลือกเวลาอื่น'
+  }
+  if (raw.includes('LOCK_EXPIRED_OR_INVALID_STATE')) {
+    return 'หมดเวลาการจองชั่วคราว กรุณาลองใหม่อีกครั้ง'
+  }
+  if (raw.includes('bookings_check')) {
+    return 'ไม่สามารถจองเวลาในอดีต กรุณาเลือกเวลาในอนาคต'
+  }
+  return raw.slice(0, 200) // fallback — show raw but truncated
 }
 
 function canAdvance(

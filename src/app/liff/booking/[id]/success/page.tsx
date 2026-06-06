@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
+// Server Component runs on Cloudflare Worker (UTC) — pin to Bangkok TZ
 const FORMATTER = new Intl.DateTimeFormat('th-TH', {
   dateStyle: 'full',
   timeStyle: 'short',
+  timeZone: 'Asia/Bangkok',
 })
 
 type BookingRow = {

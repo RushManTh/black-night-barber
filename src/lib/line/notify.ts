@@ -111,6 +111,8 @@ async function logNotification(row: {
 /* Pre-built message bodies                                            */
 /* ------------------------------------------------------------------ */
 
+// Cloudflare Workers default to UTC — pin to Bangkok so push messages show
+// the shop's local time, not UTC.
 const DATE_FMT = new Intl.DateTimeFormat('th-TH', {
   weekday: 'short',
   day: 'numeric',
@@ -118,6 +120,7 @@ const DATE_FMT = new Intl.DateTimeFormat('th-TH', {
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,
+  timeZone: 'Asia/Bangkok',
 })
 
 export function bookingConfirmedText(data: {

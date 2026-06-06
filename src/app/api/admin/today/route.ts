@@ -22,12 +22,15 @@ export async function GET(req: Request) {
     return Response.json({ error: 'admin access required' }, { status: 403 })
   }
 
-  // Today in shop's local TZ (Asia/Bangkok). Quick approach: now ± 24h window
-  const now = new Date()
-  const startOfToday = new Date(now)
-  startOfToday.setUTCHours(0, 0, 0, 0)
-  // Shift to Bangkok timezone offset (-7h from UTC = Bangkok is UTC+7)
-  startOfToday.setUTCHours(-7, 0, 0, 0)
+  // Today's midnight-to-midnight window in Asia/Bangkok (the shop's local TZ).
+  // Building the ISO string in Bangkok avoids day-boundary bugs near 00:00 UTC.
+  const bkkDate = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date()) // "YYYY-MM-DD" in Bangkok
+  const startOfToday = new Date(`${bkkDate}T00:00:00+07:00`)
   const endOfToday = new Date(startOfToday.getTime() + 86400000)
 
   let q = sb

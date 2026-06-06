@@ -41,8 +41,10 @@ export async function POST(req: Request) {
   })
 
   if (lockErr) {
-    const code = lockErr.message.includes('SLOT_UNAVAILABLE') ? 409 : 500
-    return Response.json({ error: lockErr.message }, { status: code })
+    const isConflict =
+      lockErr.message.includes('SLOT_UNAVAILABLE') ||
+      lockErr.message.includes('ALREADY_BOOKED')
+    return Response.json({ error: lockErr.message }, { status: isConflict ? 409 : 500 })
   }
 
   // Return the locked booking
