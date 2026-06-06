@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { Crown, Plus, X } from 'lucide-react'
+import { Crown, Pencil, Plus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
 import { LiffFrame } from '@/components/liff/liff-frame'
@@ -152,9 +152,19 @@ export default function AdminBarbersPage() {
                   )}
                   {b.bio && <div className="mt-1 text-xs text-foreground/80">{b.bio}</div>}
                 </div>
-                <Badge variant={b.is_active ? 'default' : 'outline'} className="shrink-0 text-[10px]">
-                  {b.is_active ? 'active' : 'inactive'}
-                </Badge>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <Badge variant={b.is_active ? 'default' : 'outline'} className="text-[10px]">
+                    {b.is_active ? 'active' : 'inactive'}
+                  </Badge>
+                  {canEdit && (
+                    <Link href={`/liff/admin/barbers/${b.id}/edit`}>
+                      <Button size="sm" variant="outline">
+                        <Pencil className="mr-1 h-3 w-3" />
+                        แก้
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

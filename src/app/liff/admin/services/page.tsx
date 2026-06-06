@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { Clock, Plus, X } from 'lucide-react'
+import { Clock, Pencil, Plus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
 import { LiffFrame } from '@/components/liff/liff-frame'
@@ -150,14 +150,22 @@ export default function AdminServicesPage() {
                 </div>
               </div>
               {canEdit && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={busyId === s.id}
-                  onClick={() => toggleActive(s)}
-                >
-                  {s.is_active ? 'ปิด' : 'เปิด'}
-                </Button>
+                <div className="flex shrink-0 flex-col gap-1">
+                  <Link href={`/liff/admin/services/${s.id}/edit`}>
+                    <Button size="sm" variant="outline" className="w-full">
+                      <Pencil className="mr-1 h-3 w-3" />
+                      แก้
+                    </Button>
+                  </Link>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busyId === s.id}
+                    onClick={() => toggleActive(s)}
+                  >
+                    {s.is_active ? 'ปิด' : 'เปิด'}
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>

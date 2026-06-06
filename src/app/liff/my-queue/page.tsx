@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { Calendar, CalendarPlus, RefreshCw, X } from 'lucide-react'
+import { Calendar, CalendarPlus, Check, RefreshCw, X } from 'lucide-react'
 import { useLiff } from '@/lib/liff/provider'
 import { LiffFrame } from '@/components/liff/liff-frame'
 import { Button } from '@/components/ui/button'
@@ -74,6 +74,21 @@ export default function MyQueuePage() {
     await load()
   }
 
+  async function handleConfirm(id: string) {
+    if (!idToken) return
+    const res = await fetch(`/api/bookings/${id}/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    })
+    if (!res.ok) {
+      const t = await res.text()
+      alert(`ยืนยันล้มเหลว: ${t}`)
+      return
+    }
+    await load()
+  }
+
   if (loading) return <Centered>กำลังโหลด…</Centered>
   if (error) return <Centered>{error}</Centered>
   if (!appProfile) return null
@@ -110,8 +125,10 @@ export default function MyQueuePage() {
         <div className="space-y-3">
           {bookings.map((b) => {
             const meta = STATE_META[b.state] ?? { label: b.state, variant: 'outline' as const }
+            const isPending = b.state === 'pending'
             const isUpcoming =
               ['pending', 'confirmed'].includes(b.state) && new Date(b.slot_time) > new Date()
+            const lockActive = isPending && b.locked_until && new Date(b.locked_until) > new Date()
             return (
               <Card key={b.id} className="border-border">
                 <CardContent className="space-y-2 py-3">
@@ -129,14 +146,30 @@ export default function MyQueuePage() {
                   <div className="text-xs text-foreground/80">
                     {b.booking_services.map((s) => s.service_name).join(' + ')}
                   </div>
-                  <div className="flex items-center justify-between pt-1">
+                  {lockActive && (
+                    <div className="rounded bg-amber-50 p-2 text-xs text-amber-700">
+                      ⏳ ยืนยันภายใน {new Date(b.locked_until!).toLocaleTimeString('th-TH', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between gap-2 pt-1">
                     <div className="text-sm font-bold">฿{Number(b.total_thb).toLocaleString()}</div>
-                    {isUpcoming && (
-                      <Button size="sm" variant="outline" onClick={() => handleCancel(b.id)}>
-                        <X className="mr-1 h-3.5 w-3.5" />
-                        ยกเลิก
-                      </Button>
-                    )}
+                    <div className="flex gap-1">
+                      {isPending && (
+                        <Button size="sm" onClick={() => handleConfirm(b.id)}>
+                          <Check className="mr-1 h-3.5 w-3.5" />
+                          ยืนยัน
+                        </Button>
+                      )}
+                      {isUpcoming && (
+                        <Button size="sm" variant="outline" onClick={() => handleCancel(b.id)}>
+                          <X className="mr-1 h-3.5 w-3.5" />
+                          ยกเลิก
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

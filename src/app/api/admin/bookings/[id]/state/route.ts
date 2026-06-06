@@ -86,10 +86,14 @@ export async function POST(
       } | null
       const lineId = d?.customer?.profile?.line_user_id
       if (lineId) {
+        const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+        const reviewUrl = liffId
+          ? `https://liff.line.me/${liffId}/booking/${id}/review`
+          : undefined
         const text =
           action === 'cancel'
             ? bookingCancelledText({ slotTime: d!.slot_time, byAdmin: true })
-            : bookingCompletedText({ total: Number(d!.total_thb), pointsEarned: 1 })
+            : bookingCompletedText({ total: Number(d!.total_thb), pointsEarned: 1, reviewUrl })
         await pushText({
           to: lineId,
           customerId: d!.customer_id,

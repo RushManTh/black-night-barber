@@ -1,7 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { CalendarDays, Lock, Scissors, Users, Wrench } from 'lucide-react'
+import {
+  BarChart3,
+  CalendarDays,
+  Lock,
+  MessagesSquare,
+  Scissors,
+  Settings,
+  Users,
+  UsersRound,
+  Wrench,
+} from 'lucide-react'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
 import { LiffFrame } from '@/components/liff/liff-frame'
 import { Card, CardContent } from '@/components/ui/card'
@@ -37,10 +47,14 @@ export default function AdminLandingPage() {
     >
       <nav className="grid gap-2">
         <NavLink href="/liff/admin/today" icon={CalendarDays} label="คิววันนี้" />
+        <NavLink href="/liff/admin/reviews" icon={MessagesSquare} label="รีวิว" />
+        <NavLink href="/liff/admin/customers" icon={UsersRound} label="ลูกค้า" />
+        <NavLink href="/liff/admin/reports" icon={BarChart3} label="รายงาน 7 วัน" />
         {appProfile.role !== 'barber' && (
           <>
             <NavLink href="/liff/admin/barbers" icon={Users} label="จัดการช่าง" />
             <NavLink href="/liff/admin/services" icon={Scissors} label="จัดการบริการ" />
+            <NavLink href="/liff/admin/settings" icon={Settings} label="ตั้งค่าร้าน" />
           </>
         )}
       </nav>

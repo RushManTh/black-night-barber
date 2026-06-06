@@ -1,9 +1,10 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
+import Link from "next/link";
 import {
   CalendarDays,
   Clock,
+  Hourglass,
   Moon,
   Scissors,
   Sparkles,
@@ -11,16 +12,16 @@ import {
   User,
   UserCircle,
   Wrench,
-} from 'lucide-react'
-import { useLiff, useIsAdmin } from '@/lib/liff/provider'
-import { LiffFrame, SectionTitle } from '@/components/liff/liff-frame'
-import { Button } from '@/components/ui/button'
+} from "lucide-react";
+import { useLiff, useIsAdmin } from "@/lib/liff/provider";
+import { LiffFrame, SectionTitle } from "@/components/liff/liff-frame";
+import { Button } from "@/components/ui/button";
 
 export default function LiffHomePage() {
-  const { loading, error, appProfile } = useLiff()
-  const isAdmin = useIsAdmin()
+  const { loading, error, appProfile } = useLiff();
+  const isAdmin = useIsAdmin();
 
-  if (loading) return <CenterMessage>กำลังเชื่อมต่อ LINE…</CenterMessage>
+  if (loading) return <CenterMessage>กำลังเชื่อมต่อ LINE…</CenterMessage>;
   if (error) {
     return (
       <CenterMessage>
@@ -29,18 +30,18 @@ export default function LiffHomePage() {
           หน้านี้ต้องเปิดผ่าน LINE Official Account หรือ LIFF URL
         </p>
       </CenterMessage>
-    )
+    );
   }
-  if (!appProfile) return null
+  if (!appProfile) return null;
 
-  const customer = appProfile.customers
+  const customer = appProfile.customers;
 
   return (
     <LiffFrame title="BLACK NIGHT">
       {/* Hero */}
       <section className="liff-hero">
         <div className="liff-hero-tagline">
-          <Moon className="h-3 w-3" /> HAT YAI · SONGKHLA
+          <Moon className="h-3 w-3" /> Singhanakorn · SONGKHLA
         </div>
         <h1 className="liff-hero-title">BLACK NIGHT</h1>
         <div className="liff-hero-sub">BARBER SHOP</div>
@@ -61,21 +62,31 @@ export default function LiffHomePage() {
       <SectionTitle>เมนูลัด</SectionTitle>
       <div className="liff-quick-grid cols-3">
         <QuickItem href="/liff/my-queue" icon={Ticket} label="คิวของฉัน" />
+        <QuickItem href="/liff/waitlist" icon={Hourglass} label="รอคิวว่าง" />
         <QuickItem href="/liff/profile" icon={UserCircle} label="โปรไฟล์" />
-        <QuickItem href="/liff/services" icon={Sparkles} label="โปรโมชั่น" disabled />
       </div>
 
       {/* Browse */}
       <SectionTitle>เลือกชม</SectionTitle>
       <div className="grid gap-2">
-        <NavLink href="/liff/services" icon={Scissors} label="บริการ + ราคา" sublabel="6 รายการ" />
+        <NavLink
+          href="/liff/services"
+          icon={Scissors}
+          label="บริการ + ราคา"
+          sublabel="6 รายการ"
+        />
         <NavLink href="/liff/barbers" icon={User} label="ช่างของเรา" />
       </div>
 
       {isAdmin && (
         <>
           <SectionTitle icon={Wrench}>Admin</SectionTitle>
-          <NavLink href="/liff/admin" icon={Wrench} label="Admin Dashboard" sublabel={appProfile.role} />
+          <NavLink
+            href="/liff/admin"
+            icon={Wrench}
+            label="Admin Dashboard"
+            sublabel={appProfile.role}
+          />
         </>
       )}
 
@@ -86,7 +97,9 @@ export default function LiffHomePage() {
       {/* Account info pill at bottom */}
       <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <span>เข้าระบบในชื่อ</span>
-        <span className="font-medium text-foreground">{appProfile.display_name}</span>
+        <span className="font-medium text-foreground">
+          {appProfile.display_name}
+        </span>
         {customer && (
           <>
             <span>·</span>
@@ -95,7 +108,7 @@ export default function LiffHomePage() {
         )}
       </div>
     </LiffFrame>
-  )
+  );
 }
 
 function CenterMessage({ children }: { children: React.ReactNode }) {
@@ -106,7 +119,7 @@ function CenterMessage({ children }: { children: React.ReactNode }) {
         <div className="mt-3">{children}</div>
       </div>
     </main>
-  )
+  );
 }
 
 function QuickItem({
@@ -115,29 +128,29 @@ function QuickItem({
   label,
   disabled,
 }: {
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  disabled?: boolean
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  disabled?: boolean;
 }) {
   const content = (
     <>
       <Icon className="h-5 w-5" />
       <span className="label">{label}</span>
     </>
-  )
+  );
   if (disabled) {
     return (
       <button disabled className="liff-quick-item" type="button">
         {content}
       </button>
-    )
+    );
   }
   return (
     <Link href={href} className="liff-quick-item">
       {content}
     </Link>
-  )
+  );
 }
 
 function NavLink({
@@ -146,10 +159,10 @@ function NavLink({
   label,
   sublabel,
 }: {
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  sublabel?: string
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  sublabel?: string;
 }) {
   return (
     <Link
@@ -159,8 +172,10 @@ function NavLink({
       <Icon className="h-5 w-5 text-muted-foreground" />
       <div className="flex-1">
         <div className="text-sm font-medium">{label}</div>
-        {sublabel && <div className="text-xs text-muted-foreground">{sublabel}</div>}
+        {sublabel && (
+          <div className="text-xs text-muted-foreground">{sublabel}</div>
+        )}
       </div>
     </Link>
-  )
+  );
 }

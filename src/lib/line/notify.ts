@@ -149,13 +149,24 @@ export function bookingCancelledText(data: { slotTime: string; byAdmin: boolean 
   return `✓ ยกเลิกคิว ${DATE_FMT.format(new Date(data.slotTime))} เรียบร้อย`
 }
 
-export function bookingCompletedText(data: { total: number; pointsEarned: number }) {
-  return (
-    `🎉 ขอบคุณที่ใช้บริการ!\n` +
-    `💰 ยอด ฿${data.total.toLocaleString()}\n` +
-    `⭐ ได้รับ ${data.pointsEarned} แต้ม\n\n` +
-    `รีวิวให้คะแนนช่างเพื่อช่วยเหลือลูกค้าคนอื่น 🙏`
-  )
+export function bookingCompletedText(data: {
+  total: number
+  pointsEarned: number
+  reviewUrl?: string
+}) {
+  const lines = [
+    `🎉 ขอบคุณที่ใช้บริการ!`,
+    `💰 ยอด ฿${data.total.toLocaleString()}`,
+    `⭐ ได้รับ ${data.pointsEarned} แต้ม`,
+    '',
+  ]
+  if (data.reviewUrl) {
+    lines.push('รีวิวให้คะแนนช่างได้ที่:')
+    lines.push(data.reviewUrl)
+  } else {
+    lines.push('รีวิวให้คะแนนช่างเพื่อช่วยเหลือลูกค้าคนอื่น 🙏')
+  }
+  return lines.join('\n')
 }
 
 export function bookingReminderText(data: { slotTime: string; barber: string }) {
