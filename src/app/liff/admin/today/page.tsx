@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import { Phone, RefreshCw } from 'lucide-react'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
+import { LiffFrame } from '@/components/liff/liff-frame'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -43,17 +45,17 @@ const STATE_META: Record<string, { label: string; variant: 'default' | 'secondar
   no_show: { label: 'ไม่มา', variant: 'destructive' },
 }
 
-const NEXT_ACTIONS: Record<string, { action: string; label: string }[]> = {
+const NEXT_ACTIONS: Record<string, { action: string; label: string; primary?: boolean }[]> = {
   confirmed: [
-    { action: 'check_in', label: 'เช็คอิน' },
+    { action: 'check_in', label: 'เช็คอิน', primary: true },
     { action: 'no_show', label: 'ไม่มา' },
     { action: 'cancel', label: 'ยกเลิก' },
   ],
   checked_in: [
-    { action: 'start', label: 'เริ่ม' },
+    { action: 'start', label: 'เริ่ม', primary: true },
     { action: 'no_show', label: 'ไม่มา' },
   ],
-  in_progress: [{ action: 'complete', label: 'เสร็จ' }],
+  in_progress: [{ action: 'complete', label: 'เสร็จ', primary: true }],
   pending: [{ action: 'cancel', label: 'ยกเลิก' }],
 }
 
@@ -99,57 +101,65 @@ export default function AdminTodayPage() {
     setBusyId(null)
   }
 
-  if (loading) return <main className="p-6 text-sm text-zinc-500">⏳ กำลังโหลด…</main>
-  if (error) return <main className="p-6 text-sm text-red-600">{error}</main>
+  if (loading) return <Centered>กำลังโหลด…</Centered>
+  if (error) return <Centered>{error}</Centered>
   if (!isAdmin) {
     return (
-      <main className="p-6 text-center text-sm text-zinc-500">
-        ต้องเป็นพนักงาน — <Link className="underline" href="/liff">กลับ</Link>
-      </main>
+      <Centered>
+        ต้องเป็นพนักงาน — <Link className="ml-1 underline" href="/liff">กลับ</Link>
+      </Centered>
     )
   }
 
   return (
-    <main className="mx-auto max-w-md p-4 pb-12">
-      <div className="flex items-center justify-between">
-        <Link href="/liff/admin" className="text-sm text-zinc-500">← กลับ</Link>
-        <button onClick={load} className="text-xs text-zinc-500 underline">รีเฟรช</button>
-      </div>
-      <h1 className="mt-2 text-xl font-semibold">คิววันนี้</h1>
-
+    <LiffFrame
+      title="คิววันนี้"
+      back="/liff/admin"
+      rightSlot={
+        <Button variant="ghost" size="icon" onClick={load} aria-label="refresh">
+          <RefreshCw />
+        </Button>
+      }
+    >
       {stats && (
-        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-          <Stat label="ทั้งหมด" value={stats.total} />
-          <Stat label="กำลังจะมา" value={stats.upcoming} />
-          <Stat label="เสร็จ" value={stats.completed} />
-          <Stat label="ไม่มา" value={stats.noShows} />
-        </div>
-      )}
-      {stats && stats.revenue > 0 && (
-        <Card className="mt-3 border-emerald-200 bg-emerald-50">
-          <CardContent className="flex items-center justify-between py-3">
-            <span className="text-sm text-emerald-700">รายได้วันนี้</span>
-            <span className="text-base font-bold text-emerald-700">
-              ฿{stats.revenue.toLocaleString()}
-            </span>
-          </CardContent>
-        </Card>
+        <>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <Stat label="ทั้งหมด" value={stats.total} />
+            <Stat label="รอ" value={stats.upcoming} />
+            <Stat label="เสร็จ" value={stats.completed} />
+            <Stat label="ไม่มา" value={stats.noShows} />
+          </div>
+          {stats.revenue > 0 && (
+            <Card className="mt-3 border-emerald-200 bg-emerald-50">
+              <CardContent className="flex items-center justify-between py-3">
+                <span className="text-sm text-emerald-700">รายได้วันนี้</span>
+                <span className="text-base font-bold text-emerald-700">
+                  ฿{stats.revenue.toLocaleString()}
+                </span>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       {actionError && (
         <p className="mt-3 rounded bg-red-50 p-2 text-xs text-red-700">{actionError}</p>
       )}
 
-      <div className="mt-6 space-y-3">
-        {bookings === null && <p className="text-sm text-zinc-500">กำลังโหลด…</p>}
+      <div className="mt-5 space-y-3">
+        {bookings === null && <p className="text-sm text-muted-foreground">กำลังโหลด…</p>}
         {bookings && bookings.length === 0 && (
-          <p className="text-center text-sm text-zinc-500">ไม่มีคิววันนี้</p>
+          <Card className="border-dashed">
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              ไม่มีคิววันนี้
+            </CardContent>
+          </Card>
         )}
         {bookings?.map((b) => {
           const meta = STATE_META[b.state] ?? { label: b.state, variant: 'outline' as const }
           const actions = NEXT_ACTIONS[b.state] ?? []
           return (
-            <Card key={b.id} className="border-zinc-200">
+            <Card key={b.id} className="border-border">
               <CardContent className="space-y-2 py-3">
                 <div className="flex items-center justify-between">
                   <div className="text-base font-bold">{FORMATTER.format(new Date(b.slot_time))}</div>
@@ -158,15 +168,19 @@ export default function AdminTodayPage() {
                 <div className="text-sm">
                   <span className="font-semibold">{b.customer?.profile?.display_name ?? '?'}</span>
                   {b.customer?.profile?.phone && (
-                    <a href={`tel:${b.customer.profile.phone}`} className="ml-2 text-xs text-blue-600 underline">
+                    <a
+                      href={`tel:${b.customer.profile.phone}`}
+                      className="ml-2 inline-flex items-center gap-1 text-xs text-blue-600"
+                    >
+                      <Phone className="h-3 w-3" />
                       {b.customer.profile.phone}
                     </a>
                   )}
                 </div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-muted-foreground">
                   ช่าง: {b.barber?.profile?.display_name} · {b.duration_minutes} นาที · ฿{Number(b.total_thb).toLocaleString()}
                 </div>
-                <div className="text-xs text-zinc-600">
+                <div className="text-xs text-foreground/80">
                   {b.booking_services.map((s) => s.service_name).join(' + ')}
                 </div>
                 {actions.length > 0 && (
@@ -175,7 +189,7 @@ export default function AdminTodayPage() {
                       <Button
                         key={a.action}
                         size="sm"
-                        variant={a.action === 'complete' || a.action === 'check_in' || a.action === 'start' ? 'default' : 'outline'}
+                        variant={a.primary ? 'default' : 'outline'}
                         disabled={busyId === b.id}
                         onClick={() => performAction(b.id, a.action)}
                       >
@@ -189,15 +203,23 @@ export default function AdminTodayPage() {
           )
         })}
       </div>
-    </main>
+    </LiffFrame>
   )
 }
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-zinc-200 bg-white py-2">
+    <div className="rounded-md border border-border bg-card py-2">
       <div className="text-lg font-bold">{value}</div>
-      <div className="text-[10px] text-zinc-500">{label}</div>
+      <div className="text-[10px] text-muted-foreground">{label}</div>
     </div>
+  )
+}
+
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center p-6 text-center text-sm text-muted-foreground">
+      {children}
+    </main>
   )
 }

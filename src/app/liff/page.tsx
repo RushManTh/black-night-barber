@@ -1,108 +1,166 @@
 'use client'
 
 import Link from 'next/link'
+import {
+  CalendarDays,
+  Clock,
+  Moon,
+  Scissors,
+  Sparkles,
+  Ticket,
+  User,
+  UserCircle,
+  Wrench,
+} from 'lucide-react'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-
-const TIER_LABEL: Record<string, string> = {
-  bronze: 'Bronze',
-  silver: 'Silver',
-  gold: 'Gold',
-}
+import { LiffFrame, SectionTitle } from '@/components/liff/liff-frame'
+import { Button } from '@/components/ui/button'
 
 export default function LiffHomePage() {
   const { loading, error, appProfile } = useLiff()
   const isAdmin = useIsAdmin()
 
-  if (loading) {
-    return (
-      <main className="p-6 text-center text-sm text-zinc-500">
-        ⏳ กำลังเชื่อมต่อ LINE…
-      </main>
-    )
-  }
-
+  if (loading) return <CenterMessage>กำลังเชื่อมต่อ LINE…</CenterMessage>
   if (error) {
     return (
-      <main className="p-6">
-        <h1 className="text-lg font-semibold text-red-600">❌ เกิดข้อผิดพลาด</h1>
-        <pre className="mt-2 whitespace-pre-wrap text-xs">{error}</pre>
-        <p className="mt-4 text-sm text-zinc-500">
-          หน้านี้ต้องเปิดผ่าน LINE Official Account หรือ LIFF URL จึงจะใช้งานได้
+      <CenterMessage>
+        <div className="text-red-600">⚠️ {error}</div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          หน้านี้ต้องเปิดผ่าน LINE Official Account หรือ LIFF URL
         </p>
-      </main>
+      </CenterMessage>
     )
   }
-
   if (!appProfile) return null
 
   const customer = appProfile.customers
 
   return (
-    <main className="mx-auto max-w-md p-4 pb-12">
-      <Card className="border-zinc-200">
-        <CardHeader className="flex flex-row items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={appProfile.avatar_url ?? undefined} alt={appProfile.display_name} />
-            <AvatarFallback>{appProfile.display_name.slice(0, 1)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <CardTitle className="text-base">{appProfile.display_name}</CardTitle>
-            <div className="mt-1 flex items-center gap-2">
-              {customer && <Badge variant="secondary">{TIER_LABEL[customer.tier]}</Badge>}
-              <span className="text-xs text-zinc-500">
-                {customer?.total_visits ?? 0} ครั้ง
-              </span>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+    <LiffFrame title="BLACK NIGHT">
+      {/* Hero */}
+      <section className="liff-hero">
+        <div className="liff-hero-tagline">
+          <Moon className="h-3 w-3" /> HAT YAI · SONGKHLA
+        </div>
+        <h1 className="liff-hero-title">BLACK NIGHT</h1>
+        <div className="liff-hero-sub">BARBER SHOP</div>
+        <div className="liff-hero-meta">
+          <Clock className="h-3 w-3" /> เปิดบริการ 10:00 — 21:00 · ทุกวัน
+        </div>
+      </section>
 
-      <h2 className="mt-6 mb-2 text-sm font-semibold text-zinc-600">เมนู</h2>
-      <nav className="grid gap-2">
-        <NavLink href="/liff/booking" emoji="📅" label="จองคิว" />
-        <NavLink href="/liff/my-queue" emoji="🎟️" label="คิวของฉัน" />
-        <NavLink href="/liff/profile" emoji="👤" label="โปรไฟล์ของฉัน" />
-        <NavLink href="/liff/services" emoji="✂️" label="บริการ + ราคา" />
-        <NavLink href="/liff/barbers" emoji="💈" label="ช่างของเรา" />
-        {isAdmin && <NavLink href="/liff/admin" emoji="🛠️" label="Admin Dashboard" />}
-      </nav>
+      {/* Primary CTA */}
+      <Link href="/liff/booking" className="mt-5 block">
+        <Button size="xl" className="w-full">
+          <Scissors className="h-5 w-5" />
+          จองคิวเลย
+        </Button>
+      </Link>
 
-      <p className="mt-6 text-center text-xs text-zinc-400">
-        BLACK NIGHT BARBER SHOP · สทิงหม้อ สงขลา
-      </p>
+      {/* Quick grid */}
+      <SectionTitle>เมนูลัด</SectionTitle>
+      <div className="liff-quick-grid cols-3">
+        <QuickItem href="/liff/my-queue" icon={Ticket} label="คิวของฉัน" />
+        <QuickItem href="/liff/profile" icon={UserCircle} label="โปรไฟล์" />
+        <QuickItem href="/liff/services" icon={Sparkles} label="โปรโมชั่น" disabled />
+      </div>
+
+      {/* Browse */}
+      <SectionTitle>เลือกชม</SectionTitle>
+      <div className="grid gap-2">
+        <NavLink href="/liff/services" icon={Scissors} label="บริการ + ราคา" sublabel="6 รายการ" />
+        <NavLink href="/liff/barbers" icon={User} label="ช่างของเรา" />
+      </div>
+
+      {isAdmin && (
+        <>
+          <SectionTitle icon={Wrench}>Admin</SectionTitle>
+          <NavLink href="/liff/admin" icon={Wrench} label="Admin Dashboard" sublabel={appProfile.role} />
+        </>
+      )}
+
+      <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+        Black Night Barber Shop
+      </footer>
+
+      {/* Account info pill at bottom */}
+      <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+        <span>เข้าระบบในชื่อ</span>
+        <span className="font-medium text-foreground">{appProfile.display_name}</span>
+        {customer && (
+          <>
+            <span>·</span>
+            <span>{customer.total_visits} ครั้ง</span>
+          </>
+        )}
+      </div>
+    </LiffFrame>
+  )
+}
+
+function CenterMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center p-6 text-center text-sm">
+      <div>
+        <CalendarDays className="mx-auto h-6 w-6 animate-pulse text-muted-foreground" />
+        <div className="mt-3">{children}</div>
+      </div>
     </main>
+  )
+}
+
+function QuickItem({
+  href,
+  icon: Icon,
+  label,
+  disabled,
+}: {
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  disabled?: boolean
+}) {
+  const content = (
+    <>
+      <Icon className="h-5 w-5" />
+      <span className="label">{label}</span>
+    </>
+  )
+  if (disabled) {
+    return (
+      <button disabled className="liff-quick-item" type="button">
+        {content}
+      </button>
+    )
+  }
+  return (
+    <Link href={href} className="liff-quick-item">
+      {content}
+    </Link>
   )
 }
 
 function NavLink({
   href,
-  emoji,
+  icon: Icon,
   label,
-  disabled,
+  sublabel,
 }: {
   href: string
-  emoji: string
+  icon: React.ComponentType<{ className?: string }>
   label: string
-  disabled?: boolean
+  sublabel?: string
 }) {
-  if (disabled) {
-    return (
-      <div className="flex items-center gap-3 rounded-lg border border-dashed border-zinc-200 px-4 py-3 text-sm text-zinc-400">
-        <span className="text-lg">{emoji}</span>
-        {label}
-      </div>
-    )
-  }
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium transition active:scale-[0.98]"
+      className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition active:scale-[0.98]"
     >
-      <span className="text-lg">{emoji}</span>
-      {label}
+      <Icon className="h-5 w-5 text-muted-foreground" />
+      <div className="flex-1">
+        <div className="text-sm font-medium">{label}</div>
+        {sublabel && <div className="text-xs text-muted-foreground">{sublabel}</div>}
+      </div>
     </Link>
   )
 }

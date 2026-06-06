@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { CheckCircle2, Clock, Ticket } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { LiffFrame } from '@/components/liff/liff-frame'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -44,14 +46,18 @@ export default async function BookingSuccessPage({
   const booking = data as unknown as BookingRow
 
   return (
-    <main className="mx-auto max-w-md p-4 pb-12">
+    <LiffFrame back="/liff">
       <div className="text-center">
-        <div className="text-5xl">✅</div>
-        <h1 className="mt-2 text-xl font-semibold">จองสำเร็จ!</h1>
-        <p className="mt-1 text-sm text-zinc-500">เราจะแจ้งเตือนคุณก่อนถึงคิว</p>
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+          <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+        </div>
+        <h1 className="mt-3 text-xl font-semibold">จองคิวสำเร็จ!</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          เราจะแจ้งเตือนผ่าน LINE ก่อนถึงคิว
+        </p>
       </div>
 
-      <Card className="mt-6 border-zinc-200">
+      <Card className="mt-6 border-border">
         <CardContent className="space-y-3 py-4">
           <Row label="ช่าง">{booking.barbers?.profiles?.display_name}</Row>
           <Row label="วัน-เวลา">{FORMATTER.format(new Date(booking.slot_time))}</Row>
@@ -70,29 +76,33 @@ export default async function BookingSuccessPage({
               <span>รวม</span>
               <span>฿{Number(booking.total_thb).toLocaleString()}</span>
             </div>
-            <p className="mt-1 text-xs text-zinc-500">⏱ {booking.duration_minutes} นาที</p>
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {booking.duration_minutes} นาที
+            </p>
           </div>
         </CardContent>
       </Card>
 
       <div className="mt-6 grid grid-cols-2 gap-2">
         <Link href="/liff/my-queue">
-          <Button variant="outline" className="w-full">
+          <Button size="lg" variant="outline" className="w-full">
+            <Ticket className="mr-2 h-4 w-4" />
             ดูคิวของฉัน
           </Button>
         </Link>
         <Link href="/liff">
-          <Button className="w-full">กลับหน้าแรก</Button>
+          <Button size="lg" className="w-full">กลับหน้าแรก</Button>
         </Link>
       </div>
-    </main>
+    </LiffFrame>
   )
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-zinc-500">{label}</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-1 text-sm">{children}</div>
     </div>
   )

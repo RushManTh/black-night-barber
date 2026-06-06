@@ -2,13 +2,16 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import { Crown, Plus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
+import { LiffFrame } from '@/components/liff/liff-frame'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 
 type BarberRow = {
   id: string
@@ -76,30 +79,31 @@ export default function AdminBarbersPage() {
     await load()
   }
 
-  if (loading) return <main className="p-6 text-sm text-zinc-500">⏳ กำลังโหลด…</main>
-  if (error) return <main className="p-6 text-sm text-red-600">{error}</main>
+  if (loading) return <Centered>กำลังโหลด…</Centered>
+  if (error) return <Centered>{error}</Centered>
   if (!isAdmin) {
     return (
-      <main className="p-6 text-center text-sm text-zinc-500">
-        ต้องเป็นพนักงาน — <Link className="underline" href="/liff">กลับ</Link>
-      </main>
+      <Centered>
+        ต้องเป็นพนักงาน — <Link className="ml-1 underline" href="/liff">กลับ</Link>
+      </Centered>
     )
   }
 
   return (
-    <main className="mx-auto max-w-md p-4 pb-12">
-      <Link href="/liff/admin" className="text-sm text-zinc-500">← กลับ</Link>
-      <div className="mt-2 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">จัดการช่าง</h1>
-        {canEdit && (
-          <Button size="sm" onClick={() => setShowForm((s) => !s)}>
-            {showForm ? 'ยกเลิก' : '+ เพิ่ม'}
+    <LiffFrame
+      title="จัดการช่าง"
+      back="/liff/admin"
+      rightSlot={
+        canEdit ? (
+          <Button size="sm" variant={showForm ? 'outline' : 'default'} onClick={() => setShowForm((s) => !s)}>
+            {showForm ? <X className="mr-1 h-3.5 w-3.5" /> : <Plus className="mr-1 h-3.5 w-3.5" />}
+            {showForm ? 'ยกเลิก' : 'เพิ่ม'}
           </Button>
-        )}
-      </div>
-
+        ) : null
+      }
+    >
       {showForm && canEdit && (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3 rounded-lg border border-zinc-200 bg-white p-4">
+        <form onSubmit={handleSubmit} className="mb-5 space-y-3 rounded-lg border border-border bg-card p-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">ชื่อช่าง *</Label>
             <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
@@ -116,36 +120,54 @@ export default function AdminBarbersPage() {
             <Label htmlFor="sp">ทรงที่ถนัด (คั่นจุลภาค)</Label>
             <Input id="sp" value={specialties} onChange={(e) => setSpecialties(e.target.value)} placeholder="Fade, Undercut" />
           </div>
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" size="lg" disabled={submitting} className="w-full">
             {submitting ? 'กำลังเพิ่ม…' : 'เพิ่มช่าง'}
           </Button>
           {submitError && <p className="text-xs text-red-600">{submitError}</p>}
-          <p className="text-xs text-zinc-500">ช่างใหม่จะได้ตารางทำงาน 10:00-21:00 ทุกวัน + ทำได้ทุกบริการ</p>
+          <p className="text-xs text-muted-foreground">
+            ช่างใหม่จะได้ตารางทำงาน 10:00-21:00 ทุกวัน + ทำได้ทุกบริการ
+          </p>
         </form>
       )}
 
-      <div className="mt-6 space-y-2">
-        {barbers === null && <p className="text-sm text-zinc-500">กำลังโหลด…</p>}
-        {barbers?.length === 0 && <p className="text-sm text-zinc-500">ยังไม่มีช่าง</p>}
+      <div className="space-y-2">
+        {barbers === null && <p className="text-sm text-muted-foreground">กำลังโหลด…</p>}
+        {barbers?.length === 0 && <p className="text-sm text-muted-foreground">ยังไม่มีช่าง</p>}
         {barbers?.map((b) => (
-          <Card key={b.id} className="border-zinc-200">
+          <Card key={b.id} className="border-border">
             <CardContent className="py-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-semibold">
-                    {b.profiles?.display_name ?? '?'} {b.is_owner && '👑'}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className="truncate text-sm font-semibold">{b.profiles?.display_name ?? '?'}</div>
+                    {b.is_owner && (
+                      <Badge variant="secondary" className="gap-1 text-[10px]">
+                        <Crown className="h-3 w-3" />
+                        เจ้าของ
+                      </Badge>
+                    )}
                   </div>
                   {b.experience_years != null && (
-                    <div className="text-xs text-zinc-500">ประสบการณ์ {b.experience_years} ปี</div>
+                    <div className="text-xs text-muted-foreground">ประสบการณ์ {b.experience_years} ปี</div>
                   )}
-                  {b.bio && <div className="mt-1 text-xs text-zinc-600">{b.bio}</div>}
+                  {b.bio && <div className="mt-1 text-xs text-foreground/80">{b.bio}</div>}
                 </div>
-                <div className="text-xs text-zinc-500">{b.is_active ? '✓ active' : '✗ inactive'}</div>
+                <Badge variant={b.is_active ? 'default' : 'outline'} className="shrink-0 text-[10px]">
+                  {b.is_active ? 'active' : 'inactive'}
+                </Badge>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+    </LiffFrame>
+  )
+}
+
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center p-6 text-center text-sm text-muted-foreground">
+      {children}
     </main>
   )
 }

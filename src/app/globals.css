@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --color-brand-gold: hsl(35 50% 65%);
+  --color-brand-night: hsl(240 10% 3.9%);
+  --font-sans: var(--font-inter), var(--font-ibm-thai), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-inter), var(--font-ibm-thai), system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -126,5 +128,146 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ============================================================
+   BLACK NIGHT BARBER — custom utility classes (ported from mockup)
+   ============================================================ */
+
+@layer components {
+  /* Hero section — dark gradient panel for landing/success */
+  .liff-hero {
+    background: linear-gradient(135deg, hsl(var(--brand-night, 240 10% 3.9%)) 0%, hsl(240 8% 15%) 100%);
+    color: white;
+    border-radius: calc(var(--radius) + 4px);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liff-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, hsl(35 50% 65% / 0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .liff-hero-tagline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: hsl(35 50% 65%);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .liff-hero-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    margin-top: 0.5rem;
+  }
+
+  .liff-hero-sub {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: hsl(35 50% 65%);
+    margin-top: 0.25rem;
+  }
+
+  .liff-hero-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 12px;
+    opacity: 0.85;
+    margin-top: 0.75rem;
+  }
+
+  /* Quick grid — 2-4 column shortcut tiles */
+  .liff-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .liff-quick-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .liff-quick-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .liff-quick-item {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .liff-quick-item:hover:not(:disabled) {
+    border-color: hsl(var(--primary));
+    transform: translateY(-1px);
+  }
+  .liff-quick-item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .liff-quick-item .label {
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* Queue card — featured upcoming booking */
+  .liff-queue-card {
+    background: linear-gradient(135deg, hsl(240 10% 3.9%) 0%, hsl(240 8% 15%) 100%);
+    color: white;
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Section title (small uppercase) */
+  .liff-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.625rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  /* Horizontal scroll carousel (no scrollbar) */
+  .liff-carousel {
+    display: flex;
+    gap: 0.625rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+  .liff-carousel::-webkit-scrollbar { display: none; }
+  .liff-carousel > * { flex: 0 0 auto; }
+
+  .liff-promo-card {
+    width: 11rem;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 0.875rem;
   }
 }

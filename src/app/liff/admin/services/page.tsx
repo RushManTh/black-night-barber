@@ -2,12 +2,15 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import { Clock, Plus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLiff, useIsAdmin } from '@/lib/liff/provider'
+import { LiffFrame } from '@/components/liff/liff-frame'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 
 type Service = {
   id: string
@@ -82,30 +85,31 @@ export default function AdminServicesPage() {
     setBusyId(null)
   }
 
-  if (loading) return <main className="p-6 text-sm text-zinc-500">⏳ กำลังโหลด…</main>
-  if (error) return <main className="p-6 text-sm text-red-600">{error}</main>
+  if (loading) return <Centered>กำลังโหลด…</Centered>
+  if (error) return <Centered>{error}</Centered>
   if (!isAdmin) {
     return (
-      <main className="p-6 text-center text-sm text-zinc-500">
-        ต้องเป็นพนักงาน — <Link className="underline" href="/liff">กลับ</Link>
-      </main>
+      <Centered>
+        ต้องเป็นพนักงาน — <Link className="ml-1 underline" href="/liff">กลับ</Link>
+      </Centered>
     )
   }
 
   return (
-    <main className="mx-auto max-w-md p-4 pb-12">
-      <Link href="/liff/admin" className="text-sm text-zinc-500">← กลับ</Link>
-      <div className="mt-2 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">จัดการบริการ</h1>
-        {canEdit && (
-          <Button size="sm" onClick={() => setShowForm((s) => !s)}>
-            {showForm ? 'ยกเลิก' : '+ เพิ่ม'}
+    <LiffFrame
+      title="จัดการบริการ"
+      back="/liff/admin"
+      rightSlot={
+        canEdit ? (
+          <Button size="sm" variant={showForm ? 'outline' : 'default'} onClick={() => setShowForm((s) => !s)}>
+            {showForm ? <X className="mr-1 h-3.5 w-3.5" /> : <Plus className="mr-1 h-3.5 w-3.5" />}
+            {showForm ? 'ยกเลิก' : 'เพิ่ม'}
           </Button>
-        )}
-      </div>
-
+        ) : null
+      }
+    >
       {showForm && canEdit && (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3 rounded-lg border border-zinc-200 bg-white p-4">
+        <form onSubmit={handleSubmit} className="mb-5 space-y-3 rounded-lg border border-border bg-card p-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">ชื่อบริการ *</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -120,24 +124,29 @@ export default function AdminServicesPage() {
               <Input id="price" type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required />
             </div>
           </div>
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" size="lg" disabled={submitting} className="w-full">
             {submitting ? 'กำลังเพิ่ม…' : 'เพิ่มบริการ'}
           </Button>
           {submitError && <p className="text-xs text-red-600">{submitError}</p>}
-          <p className="text-xs text-zinc-500">บริการใหม่จะเชื่อมโยงกับช่างที่ active ทุกคนอัตโนมัติ</p>
+          <p className="text-xs text-muted-foreground">
+            บริการใหม่จะเชื่อมโยงกับช่างที่ active ทุกคนอัตโนมัติ
+          </p>
         </form>
       )}
 
-      <div className="mt-6 space-y-2">
-        {services === null && <p className="text-sm text-zinc-500">กำลังโหลด…</p>}
-        {services?.length === 0 && <p className="text-sm text-zinc-500">ยังไม่มีบริการ</p>}
+      <div className="space-y-2">
+        {services === null && <p className="text-sm text-muted-foreground">กำลังโหลด…</p>}
+        {services?.length === 0 && <p className="text-sm text-muted-foreground">ยังไม่มีบริการ</p>}
         {services?.map((s) => (
-          <Card key={s.id} className={`border-zinc-200 ${!s.is_active && 'opacity-50'}`}>
+          <Card key={s.id} className={`border-border ${!s.is_active ? 'opacity-50' : ''}`}>
             <CardContent className="flex items-center justify-between py-3">
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold">{s.name}</div>
-                <div className="text-xs text-zinc-500">
-                  ⏱ {s.duration_minutes} นาที · ฿{Number(s.price_thb).toLocaleString()}
+                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary" className="gap-1 text-[10px]">
+                    <Clock className="h-3 w-3" /> {s.duration_minutes} นาที
+                  </Badge>
+                  <span className="font-medium">฿{Number(s.price_thb).toLocaleString()}</span>
                 </div>
               </div>
               {canEdit && (
@@ -154,6 +163,14 @@ export default function AdminServicesPage() {
           </Card>
         ))}
       </div>
+    </LiffFrame>
+  )
+}
+
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center p-6 text-center text-sm text-muted-foreground">
+      {children}
     </main>
   )
 }

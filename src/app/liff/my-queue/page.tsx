@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { Calendar, CalendarPlus, RefreshCw, X } from 'lucide-react'
 import { useLiff } from '@/lib/liff/provider'
+import { LiffFrame } from '@/components/liff/liff-frame'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -27,10 +29,10 @@ const FORMATTER = new Intl.DateTimeFormat('th-TH', {
   hour12: false,
 })
 
-const STATE_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
+const STATE_META: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
   pending: { label: 'รอยืนยัน', variant: 'outline' },
   confirmed: { label: 'ยืนยันแล้ว', variant: 'default' },
-  checked_in: { label: 'มาถึงแล้ว', variant: 'secondary' },
+  checked_in: { label: 'มาแล้ว', variant: 'secondary' },
   in_progress: { label: 'กำลังตัด', variant: 'secondary' },
   completed: { label: 'เสร็จสิ้น', variant: 'secondary' },
   cancelled: { label: 'ยกเลิก', variant: 'destructive' },
@@ -43,19 +45,18 @@ export default function MyQueuePage() {
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [refreshing, setRefreshing] = useState(false)
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!idToken) return
     setRefreshing(true)
     const res = await fetch(`/api/bookings?idToken=${encodeURIComponent(idToken)}`)
     const data = await res.json()
     setBookings(data.bookings ?? [])
     setRefreshing(false)
-  }
+  }, [idToken])
 
   useEffect(() => {
     if (idToken) load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idToken])
+  }, [idToken, load])
 
   async function handleCancel(id: string) {
     if (!idToken) return
@@ -73,58 +74,66 @@ export default function MyQueuePage() {
     await load()
   }
 
-  if (loading) return <main className="p-6 text-sm text-zinc-500">⏳ กำลังโหลด…</main>
-  if (error) return <main className="p-6 text-sm text-red-600">{error}</main>
+  if (loading) return <Centered>กำลังโหลด…</Centered>
+  if (error) return <Centered>{error}</Centered>
   if (!appProfile) return null
 
   return (
-    <main className="mx-auto max-w-md p-4 pb-12">
-      <div className="flex items-center justify-between">
-        <Link href="/liff" className="text-sm text-zinc-500">← กลับ</Link>
-        <button
-          onClick={load}
-          disabled={refreshing}
-          className="text-xs text-zinc-500 underline disabled:opacity-50"
-        >
-          {refreshing ? 'โหลด…' : 'รีเฟรช'}
-        </button>
-      </div>
-      <h1 className="mt-2 text-xl font-semibold">คิวของฉัน</h1>
+    <LiffFrame
+      title="คิวของฉัน"
+      back="/liff"
+      rightSlot={
+        <Button variant="ghost" size="icon" onClick={load} disabled={refreshing} aria-label="refresh">
+          <RefreshCw className={refreshing ? 'animate-spin' : ''} />
+        </Button>
+      }
+    >
+      {bookings === null && <p className="text-sm text-muted-foreground">กำลังโหลด…</p>}
 
-      {bookings === null ? (
-        <p className="mt-6 text-sm text-zinc-500">กำลังโหลด…</p>
-      ) : bookings.length === 0 ? (
-        <Card className="mt-6 border-dashed border-zinc-300">
-          <CardContent className="py-8 text-center text-sm text-zinc-500">
-            <div className="text-3xl">🗓️</div>
-            <p className="mt-2">ยังไม่มีคิว</p>
+      {bookings && bookings.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="py-10 text-center">
+            <Calendar className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 text-sm font-medium">ยังไม่มีคิว</p>
+            <p className="mt-1 text-xs text-muted-foreground">จองคิวแรกของคุณเลย</p>
             <Link href="/liff/booking">
-              <Button className="mt-4">จองคิวเลย</Button>
+              <Button className="mt-4" size="sm">
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                จองคิวเลย
+              </Button>
             </Link>
           </CardContent>
         </Card>
-      ) : (
-        <div className="mt-6 space-y-3">
+      )}
+
+      {bookings && bookings.length > 0 && (
+        <div className="space-y-3">
           {bookings.map((b) => {
-            const meta = STATE_LABEL[b.state] ?? { label: b.state, variant: 'outline' as const }
-            const isUpcoming = ['pending', 'confirmed'].includes(b.state) && new Date(b.slot_time) > new Date()
+            const meta = STATE_META[b.state] ?? { label: b.state, variant: 'outline' as const }
+            const isUpcoming =
+              ['pending', 'confirmed'].includes(b.state) && new Date(b.slot_time) > new Date()
             return (
-              <Card key={b.id} className="border-zinc-200">
+              <Card key={b.id} className="border-border">
                 <CardContent className="space-y-2 py-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-semibold">{FORMATTER.format(new Date(b.slot_time))}</div>
-                    <Badge variant={meta.variant}>{meta.label}</Badge>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm font-semibold">
+                      {FORMATTER.format(new Date(b.slot_time))}
+                    </div>
+                    <Badge variant={meta.variant} className="shrink-0">
+                      {meta.label}
+                    </Badge>
                   </div>
-                  <div className="text-xs text-zinc-500">
+                  <div className="text-xs text-muted-foreground">
                     ช่าง: {b.barbers?.profiles?.display_name ?? '-'}
                   </div>
-                  <div className="text-xs text-zinc-500">
+                  <div className="text-xs text-foreground/80">
                     {b.booking_services.map((s) => s.service_name).join(' + ')}
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <div className="text-sm font-bold">฿{Number(b.total_thb).toLocaleString()}</div>
                     {isUpcoming && (
                       <Button size="sm" variant="outline" onClick={() => handleCancel(b.id)}>
+                        <X className="mr-1 h-3.5 w-3.5" />
                         ยกเลิก
                       </Button>
                     )}
@@ -135,6 +144,14 @@ export default function MyQueuePage() {
           })}
         </div>
       )}
+    </LiffFrame>
+  )
+}
+
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center p-6 text-center text-sm text-muted-foreground">
+      {children}
     </main>
   )
 }
