@@ -4,13 +4,15 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { Profile } from '@liff/get-profile'
 
 // Internal user shape — what /api/me returns
+export type AppRole = 'customer' | 'barber' | 'admin' | 'owner'
+
 export type AppProfile = {
   id: string
   display_name: string
   avatar_url: string | null
   phone: string | null
   line_user_id: string
-  role: 'customer' | 'barber' | 'admin' | 'owner'
+  role: AppRole
   customers: {
     birthday: string | null
     preferred_hairstyles: string[] | null
@@ -19,6 +21,8 @@ export type AppProfile = {
     total_visits: number
   } | null
 }
+
+export const ADMIN_ROLES: AppRole[] = ['barber', 'admin', 'owner']
 
 type LiffState = {
   ready: boolean
@@ -123,3 +127,8 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useLiff = () => useContext(LiffContext)
+
+export function useIsAdmin(): boolean {
+  const { appProfile } = useLiff()
+  return appProfile != null && ADMIN_ROLES.includes(appProfile.role)
+}

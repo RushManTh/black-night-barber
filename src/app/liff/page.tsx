@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useLiff } from '@/lib/liff/provider'
+import { useLiff, useIsAdmin } from '@/lib/liff/provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,7 @@ const TIER_LABEL: Record<string, string> = {
 
 export default function LiffHomePage() {
   const { loading, error, appProfile } = useLiff()
+  const isAdmin = useIsAdmin()
 
   if (loading) {
     return (
@@ -66,6 +67,7 @@ export default function LiffHomePage() {
         <NavLink href="/liff/profile" emoji="👤" label="โปรไฟล์ของฉัน" />
         <NavLink href="/liff/services" emoji="✂️" label="บริการ + ราคา" />
         <NavLink href="/liff/barbers" emoji="💈" label="ช่างของเรา" />
+        {isAdmin && <NavLink href="/liff/admin" emoji="🛠️" label="Admin Dashboard" />}
       </nav>
 
       <p className="mt-6 text-center text-xs text-zinc-400">
