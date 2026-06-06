@@ -1,60 +1,106 @@
 'use client'
 
+import Link from 'next/link'
 import { useLiff } from '@/lib/liff/provider'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+
+const TIER_LABEL: Record<string, string> = {
+  bronze: 'Bronze',
+  silver: 'Silver',
+  gold: 'Gold',
+}
 
 export default function LiffHomePage() {
-  const { ready, loading, error, profile, isInClient } = useLiff()
+  const { loading, error, appProfile } = useLiff()
 
   if (loading) {
     return (
-      <main style={{ padding: 24, fontFamily: 'system-ui' }}>
-        <p>⏳ กำลังเชื่อมต่อ LINE…</p>
+      <main className="p-6 text-center text-sm text-zinc-500">
+        ⏳ กำลังเชื่อมต่อ LINE…
       </main>
     )
   }
 
   if (error) {
     return (
-      <main style={{ padding: 24, fontFamily: 'system-ui' }}>
-        <h1 style={{ color: 'crimson' }}>❌ LIFF Error</h1>
-        <pre>{error}</pre>
-        <p style={{ marginTop: 16, color: '#666' }}>
+      <main className="p-6">
+        <h1 className="text-lg font-semibold text-red-600">❌ เกิดข้อผิดพลาด</h1>
+        <pre className="mt-2 whitespace-pre-wrap text-xs">{error}</pre>
+        <p className="mt-4 text-sm text-zinc-500">
           หน้านี้ต้องเปิดผ่าน LINE Official Account หรือ LIFF URL จึงจะใช้งานได้
         </p>
       </main>
     )
   }
 
-  if (!ready || !profile) return null
+  if (!appProfile) return null
+
+  const customer = appProfile.customers
 
   return (
-    <main style={{ padding: 24, fontFamily: 'system-ui', maxWidth: 480 }}>
-      <h1>👋 สวัสดี {profile.displayName}</h1>
+    <main className="mx-auto max-w-md p-4 pb-12">
+      <Card className="border-zinc-200">
+        <CardHeader className="flex flex-row items-center gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={appProfile.avatar_url ?? undefined} alt={appProfile.display_name} />
+            <AvatarFallback>{appProfile.display_name.slice(0, 1)}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <CardTitle className="text-base">{appProfile.display_name}</CardTitle>
+            <div className="mt-1 flex items-center gap-2">
+              {customer && <Badge variant="secondary">{TIER_LABEL[customer.tier]}</Badge>}
+              <span className="text-xs text-zinc-500">
+                {customer?.total_visits ?? 0} ครั้ง
+              </span>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
-      {profile.pictureUrl && (
-        <img
-          src={profile.pictureUrl}
-          alt={profile.displayName}
-          width={96}
-          height={96}
-          style={{ borderRadius: '50%', marginTop: 16 }}
-        />
-      )}
+      <h2 className="mt-6 mb-2 text-sm font-semibold text-zinc-600">เมนู</h2>
+      <nav className="grid gap-2">
+        <NavLink href="/liff/profile" emoji="👤" label="โปรไฟล์ของฉัน" />
+        <NavLink href="/liff/services" emoji="✂️" label="บริการ + ราคา" />
+        <NavLink href="/liff/barbers" emoji="💈" label="ช่างของเรา" />
+        <NavLink href="#" emoji="📅" label="จองคิว (เร็วๆ นี้)" disabled />
+        <NavLink href="#" emoji="🎟️" label="คิวของฉัน (เร็วๆ นี้)" disabled />
+      </nav>
 
-      <dl style={{ marginTop: 24, lineHeight: 1.8 }}>
-        <dt style={{ fontWeight: 600 }}>LINE userId</dt>
-        <dd style={{ fontFamily: 'monospace', fontSize: 13 }}>{profile.userId}</dd>
-
-        <dt style={{ fontWeight: 600, marginTop: 8 }}>Status message</dt>
-        <dd>{profile.statusMessage ?? '—'}</dd>
-
-        <dt style={{ fontWeight: 600, marginTop: 8 }}>เปิดในแอป LINE?</dt>
-        <dd>{isInClient ? '✅ ใช่' : '❌ ไม่ใช่ (external browser)'}</dd>
-      </dl>
-
-      <p style={{ marginTop: 24, color: '#666', fontSize: 14 }}>
-        ถ้าเห็นข้อมูลครบ = LIFF ต่อสำเร็จ ✅
+      <p className="mt-6 text-center text-xs text-zinc-400">
+        BLACK NIGHT BARBER SHOP · สทิงหม้อ สงขลา
       </p>
     </main>
+  )
+}
+
+function NavLink({
+  href,
+  emoji,
+  label,
+  disabled,
+}: {
+  href: string
+  emoji: string
+  label: string
+  disabled?: boolean
+}) {
+  if (disabled) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-dashed border-zinc-200 px-4 py-3 text-sm text-zinc-400">
+        <span className="text-lg">{emoji}</span>
+        {label}
+      </div>
+    )
+  }
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium transition active:scale-[0.98]"
+    >
+      <span className="text-lg">{emoji}</span>
+      {label}
+    </Link>
   )
 }

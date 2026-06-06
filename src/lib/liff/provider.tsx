@@ -3,20 +3,43 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { Profile } from '@liff/get-profile'
 
+// Internal user shape — what /api/me returns
+export type AppProfile = {
+  id: string
+  display_name: string
+  avatar_url: string | null
+  phone: string | null
+  line_user_id: string
+  role: 'customer' | 'barber' | 'admin' | 'owner'
+  customers: {
+    birthday: string | null
+    preferred_hairstyles: string[] | null
+    tier: 'bronze' | 'silver' | 'gold'
+    trust_score: number
+    total_visits: number
+  } | null
+}
+
 type LiffState = {
   ready: boolean
   loading: boolean
   error: string | null
-  profile: Profile | null
+  lineProfile: Profile | null
+  appProfile: AppProfile | null
+  idToken: string | null
   isInClient: boolean
+  refresh: () => Promise<void>
 }
 
 const initialState: LiffState = {
   ready: false,
   loading: true,
   error: null,
-  profile: null,
+  lineProfile: null,
+  appProfile: null,
+  idToken: null,
   isInClient: false,
+  refresh: async () => {},
 }
 
 const LiffContext = createContext<LiffState>(initialState)
@@ -39,16 +62,41 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
           return
         }
 
-        const profile = await liff.getProfile()
+        const [lineProfile, idToken] = await Promise.all([
+          liff.getProfile(),
+          Promise.resolve(liff.getIDToken()),
+        ])
         if (cancelled) return
 
-        setState({
+        // Sync with our backend
+        const res = await fetch('/api/me', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idToken,
+            displayName: lineProfile.displayName,
+            pictureUrl: lineProfile.pictureUrl,
+          }),
+        })
+
+        if (!res.ok) {
+          const errText = await res.text()
+          throw new Error(`sync failed (${res.status}): ${errText}`)
+        }
+
+        const { profile } = (await res.json()) as { profile: AppProfile }
+        if (cancelled) return
+
+        setState((s) => ({
+          ...s,
           ready: true,
           loading: false,
           error: null,
-          profile,
+          lineProfile,
+          appProfile: profile,
+          idToken: idToken ?? null,
           isInClient: liff.isInClient(),
-        })
+        }))
       } catch (e) {
         if (cancelled) return
         setState((s) => ({
@@ -59,6 +107,12 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    const refresh = async () => {
+      setState((s) => ({ ...s, loading: true }))
+      await init()
+    }
+
+    setState((s) => ({ ...s, refresh }))
     init()
     return () => {
       cancelled = true
