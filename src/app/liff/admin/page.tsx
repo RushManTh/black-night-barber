@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import {
   BarChart3,
+  CalendarClock,
   CalendarDays,
   Lock,
   MessagesSquare,
@@ -48,6 +49,7 @@ export default function AdminLandingPage() {
     >
       <nav className="grid gap-2">
         <NavLink href="/liff/admin/today" icon={CalendarDays} label="คิววันนี้" />
+        <NavLink href="/liff/admin/schedule" icon={CalendarClock} label="ตารางคิวร้าน" />
         <NavLink href="/liff/admin/reviews" icon={MessagesSquare} label="รีวิว" />
         <NavLink href="/liff/admin/customers" icon={UsersRound} label="ลูกค้า" />
         <NavLink href="/liff/admin/reports" icon={BarChart3} label="รายงาน 7 วัน" />
