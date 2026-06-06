@@ -4,6 +4,11 @@
 //   • no_show     → customer.trust_score -= 20
 import { authenticateAdmin } from '@/lib/line/admin-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import {
+  bookingCancelledText,
+  bookingCompletedText,
+  pushText,
+} from '@/lib/line/notify'
 
 type Action = 'check_in' | 'start' | 'complete' | 'no_show' | 'cancel'
 
@@ -61,6 +66,40 @@ export async function POST(
 
   const { error } = await sb.from('bookings').update(patch).eq('id', id)
   if (error) return Response.json({ error: error.message }, { status: 500 })
+
+  // Best-effort customer notification on terminal/visible transitions.
+  if (action === 'cancel' || action === 'complete') {
+    try {
+      const { data: detail } = await sb
+        .from('bookings')
+        .select(
+          'slot_time, total_thb, customer_id, ' +
+            'customer:customers(profile:profiles(line_user_id))'
+        )
+        .eq('id', id)
+        .single()
+      const d = detail as unknown as {
+        slot_time: string
+        total_thb: number
+        customer_id: string
+        customer: { profile: { line_user_id: string | null } | null } | null
+      } | null
+      const lineId = d?.customer?.profile?.line_user_id
+      if (lineId) {
+        const text =
+          action === 'cancel'
+            ? bookingCancelledText({ slotTime: d!.slot_time, byAdmin: true })
+            : bookingCompletedText({ total: Number(d!.total_thb), pointsEarned: 1 })
+        await pushText({
+          to: lineId,
+          customerId: d!.customer_id,
+          bookingId: id,
+          templateKey: action === 'cancel' ? 'admin_cancel' : 'booking_completed',
+          text,
+        })
+      }
+    } catch { /* swallow */ }
+  }
 
   return Response.json({ ok: true, state: cfg.to })
 }

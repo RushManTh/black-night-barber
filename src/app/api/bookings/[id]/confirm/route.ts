@@ -1,6 +1,7 @@
 // POST /api/bookings/[id]/confirm — call confirm_booking() within lock window
 import { authenticate } from '@/lib/line/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { bookingConfirmedText, pushText } from '@/lib/line/notify'
 
 export async function POST(
   req: Request,
@@ -29,6 +30,42 @@ export async function POST(
     const expired = error.message.includes('LOCK_EXPIRED') || error.message.includes('INVALID_STATE')
     return Response.json({ error: error.message }, { status: expired ? 410 : 500 })
   }
+
+  // Best-effort LINE push (failure shouldn't break the booking)
+  try {
+    const { data: detail } = await sb
+      .from('bookings')
+      .select(
+        'slot_time, total_thb, ' +
+          'customer:customers(profile:profiles(line_user_id)), ' +
+          'barber:barbers(profile:profiles(display_name)), ' +
+          'booking_services(service_name)'
+      )
+      .eq('id', id)
+      .single()
+    const d = detail as unknown as {
+      slot_time: string
+      total_thb: number
+      customer: { profile: { line_user_id: string | null } | null } | null
+      barber: { profile: { display_name: string } | null } | null
+      booking_services: { service_name: string }[]
+    } | null
+    const lineId = d?.customer?.profile?.line_user_id
+    if (lineId) {
+      await pushText({
+        to: lineId,
+        customerId: auth.userId,
+        bookingId: id,
+        templateKey: 'booking_confirmed',
+        text: bookingConfirmedText({
+          slotTime: d!.slot_time,
+          services: d!.booking_services.map((s) => s.service_name),
+          barber: d!.barber?.profile?.display_name ?? 'ช่างของเรา',
+          total: Number(d!.total_thb),
+        }),
+      })
+    }
+  } catch { /* swallow */ }
 
   return Response.json({ booking: data })
 }
